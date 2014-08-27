@@ -21,6 +21,7 @@
 
 import time
 import sys
+sys.path.append("../")
 
 from players.goalie_agent import GoalieAgent
 
