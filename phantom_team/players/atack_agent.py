@@ -22,6 +22,8 @@ class AtackAgent(AbstractPlayer, SuperMan):
 
             self.display = FieldDisplay()
 
+        self.current_time = 0
+
     def think(self):
         """
         Performs a single step of thinking for our agent.  Gets called on every
@@ -59,7 +61,7 @@ class AtackAgent(AbstractPlayer, SuperMan):
                 if self.is_ball_kickable():
                     # kick with 100% extra effort at enemy goal
                     self.kick_to(self.goal_pos, 1.0)
-                    print self.goal_pos
+                    # print self.goal_pos
                 else:
                     # move towards ball
                     if self.wm.ball is not None:
@@ -77,8 +79,16 @@ class AtackAgent(AbstractPlayer, SuperMan):
 
         # attack!
         else:
+            # If not new cicle
+            # if self.current_time == self.wm.sim_time:
+            #     return
+
+            # self.current_time = self.wm.sim_time
+            # print self.wm.sim_time
+
             if self.wm.abs_coords is not None:
-                self.run_to_point((0,40))
+
+                self.dash_to_point((50,25))
                 return
 
             # find the ball
