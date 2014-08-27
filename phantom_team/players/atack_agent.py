@@ -1,10 +1,10 @@
-
+from super import SuperMan
 from smsoccer.players.abstractplayer import AbstractPlayer
 from smsoccer.strategy.formation import player_position
-from smsoccer.util.geometric import cut_angle, angle_between_points
 from smsoccer.world.world_model import WorldModel, PlayModes
 
-class AtackAgent(AbstractPlayer):
+
+class AtackAgent(AbstractPlayer, SuperMan):
     """
     This is a DEMO about how to extend the AbstractAgent and implement the
     think method. For a new development is recommended to do the same.
@@ -14,14 +14,13 @@ class AtackAgent(AbstractPlayer):
     def __init__(self, visualization=False):
 
         AbstractPlayer.__init__(self)
+        SuperMan.__init__(self)
 
         self.visualization = visualization
         if visualization:
             from smsoccer.util.fielddisplay import FieldDisplay
 
             self.display = FieldDisplay()
-
-
 
     def think(self):
         """
@@ -45,7 +44,7 @@ class AtackAgent(AbstractPlayer):
             # Teleport to right position
             self.teleport_to_point(position_point)
 
-            #turns to attack field
+            # turns to attack field
             if self.wm.side == WorldModel.SIDE_R:
                 self.wm.ah.turn(180)
 
@@ -78,6 +77,10 @@ class AtackAgent(AbstractPlayer):
 
         # attack!
         else:
+            if self.wm.abs_coords is not None:
+                self.run_to_point((0,40))
+                return
+
             # find the ball
             if self.wm.ball is None or self.wm.ball.direction is None:
                 self.wm.ah.turn(35)
@@ -86,10 +89,9 @@ class AtackAgent(AbstractPlayer):
             # kick it at the enemy goal
             if self.is_ball_kickable():
 
-                angle = cut_angle(angle_between_points(self.wm.abs_coords, self.goal_pos)) - cut_angle(self.wm.abs_body_dir)
-
-
-                self.wm.ah.kick(20, angle)
+                # angle = cut_angle(angle_between_points(self.wm.abs_coords, self.goal_pos)) - cut_angle(self.wm.abs_body_dir)
+                # self.wm.ah.kick(20, angle)
+                self.kick_to((0, 20))
                 return
             else:
                 # move towards ball

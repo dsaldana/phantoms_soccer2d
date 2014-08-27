@@ -21,6 +21,8 @@
 
 import time
 import sys
+from players.atack_agent import AtackAgent
+
 sys.path.append("../")
 
 from players.goalie_agent import GoalieAgent
@@ -42,7 +44,7 @@ if __name__ == "__main__":
     else:
         team_name = "default"
 
-    GoalieAgent().connect(HOST, PORT, team_name).play()
+    AtackAgent().connect(HOST, PORT, team_name).play()
 
     # wait until killed to terminate agent processes
     try:
