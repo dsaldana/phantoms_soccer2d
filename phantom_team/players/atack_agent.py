@@ -1,62 +1,103 @@
 
 from smsoccer.players.abstractplayer import AbstractPlayer
 from smsoccer.strategy.formation import player_position
+from smsoccer.util.geometric import cut_angle, angle_between_points
 from smsoccer.world.world_model import WorldModel, PlayModes
 
 class AtackAgent(AbstractPlayer):
     """
-    Goalie Agent for Robocup Soccer Team
+    This is a DEMO about how to extend the AbstractAgent and implement the
+    think method. For a new development is recommended to do the same.
     """
 
-    def __init__(self):
-        super(AtackAgent, self).__init__()
 
-        self._back_to_goal = False
-        self._my_goal_position = None
+    def __init__(self, visualization=False):
 
-        self.__control_turn = True
+        AbstractPlayer.__init__(self)
+
+        self.visualization = visualization
+        if visualization:
+            from smsoccer.util.fielddisplay import FieldDisplay
+
+            self.display = FieldDisplay()
+
+
 
     def think(self):
         """
-        Think method
+        Performs a single step of thinking for our agent.  Gets called on every
+        iteration of our think loop.
         """
-        if not self.in_kick_off_formation:
+        if self.visualization:
+            if self.wm.abs_coords[0] is None:
+                return
 
-            self._my_goal_position = player_position(self.wm.uniform_number, self.wm.side == WorldModel.SIDE_R)
+            self.display.clear()
+            self.display.draw_robot(self.wm.abs_coords, self.wm.abs_body_dir)
+            if self.wm.ball is not None:
+                self.display.draw_circle(self.wm.get_object_absolute_coords(self.wm.ball), 4)
+                # print self.wm.ball.direction, self.wm.ball.distance
+            self.display.show()
+
+        # take places on the field by uniform number
+        if not self.in_kick_off_formation:
+            position_point = player_position(self.wm.uniform_number)
             # Teleport to right position
-            self.wm.teleport_to_point(self._my_goal_position)
+            self.teleport_to_point(position_point)
+
+            #turns to attack field
+            if self.wm.side == WorldModel.SIDE_R:
+                self.wm.ah.turn(180)
+
             # Player is ready in formation
             self.in_kick_off_formation = True
             return
 
-        if not self.wm.is_before_kick_off():
-
-            if self._back_to_goal:
-
-                if self.__control_turn:
-                    self.wm.turn_body_to_point( self._my_goal_position )
+        # kick off!
+        if self.wm.play_mode == PlayModes.BEFORE_KICK_OFF:
+            # player 9 takes the kick off
+            if self.wm.uniform_number == 9:
+                if self.is_ball_kickable():
+                    # kick with 100% extra effort at enemy goal
+                    self.kick_to(self.goal_pos, 1.0)
+                    print self.goal_pos
                 else:
-                    self.wm.ah.dash(20)
+                    # move towards ball
+                    if self.wm.ball is not None:
+                        if self.wm.ball.direction is not None \
+                                and -7 <= self.wm.ball.direction <= 7:
+                            self.wm.ah.dash(50)
+                        else:
+                            self.wm.turn_body_to_point((0, 0))
 
-                if self.wm.get_distance_to_point( self._my_goal_position ) <= 10:
-                    self._back_to_goal = False
+                # turn to ball if we can see it, else face the enemy goal
+                if self.wm.ball is not None:
+                    self.turn_neck_to_object(self.wm.ball)
 
-                self.__control_turn = not self.__control_turn
                 return
 
+        # attack!
+        else:
+            # find the ball
             if self.wm.ball is None or self.wm.ball.direction is None:
-                self.wm.ah.turn(20)
+                self.wm.ah.turn(35)
+                return
+
+            # kick it at the enemy goal
+            if self.is_ball_kickable():
+
+                angle = cut_angle(angle_between_points(self.wm.abs_coords, self.goal_pos)) - cut_angle(self.wm.abs_body_dir)
+
+
+                self.wm.ah.kick(20, angle)
+                return
             else:
-                if self.wm.is_ball_kickable():
-                    self.wm.ah.catch(0)
-
-                    if self.wm.ball is not None:
-                        self.wm.kick_to( self.goal_pos )
-
-                        self._back_to_goal = True
+                # move towards ball
+                if -7 <= self.wm.ball.direction <= 7:
+                    self.wm.ah.dash(5 * self.wm.ball.distance + 20)
                 else:
-                    self.wm.ah.dash(50)
+                    # face ball
+                    self.wm.ah.turn(self.wm.ball.direction / 2)
 
-            if self.wm.get_distance_to_point( self._my_goal_position ) > 25:
-                self._back_to_goal = True
+                return
 
