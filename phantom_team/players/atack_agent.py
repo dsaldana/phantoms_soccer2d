@@ -24,6 +24,8 @@ class AtackAgent(AbstractPlayer, SuperMan):
 
         self.current_time = 0
 
+        self.drib = True
+
     def think(self):
         """
         Performs a single step of thinking for our agent.  Gets called on every
@@ -95,11 +97,12 @@ class AtackAgent(AbstractPlayer, SuperMan):
             #     return
 
             # find the ball
-            if self.wm.ball is None or self.wm.ball.direction is None:
-                self.wm.ah.turn(35)
-                return
+            if self.drib:
+                if self.wm.ball is None or self.wm.ball.direction is None:
+                    self.wm.ah.turn(35)
+                    return
 
-            self.dribbling_to((35, 15))
+            self.drib = self.dribbling_to((35, 15))
 
 
             # # kick it at the enemy goal

@@ -64,17 +64,23 @@ class SuperMan(object):
         self.old_distance = distance
 
 
-    def dribbling_to(self, point):
-        if self.new_sensed_msg or self.local_ball_dir is None:
+    def dribbling_to(self, point, radio=10):
+        if (
+            self.new_sensed_msg or self.local_ball_dir is None) and self.wm.ball is not None and self.wm.ball.direction is not None:
             self.local_ball_dir = self.wm.ball.direction
             self.local_ball_distance = self.wm.ball.distance
+
+        target_d = euclidean_distance(self.wm.abs_coords, point)
+
+        if target_d < radio:
+            return True
 
         if self.is_ball_kickable():
             angle = cut_angle(angle_between_points(self.wm.abs_coords, point)) - cut_angle(self.local_direction)
             self.wm.ah.kick(10, angle)
-            self.local_ball_distance += 3 / 4
+            self.local_ball_distance += 3 / 5
             self.local_ball_dir += angle
-            return
+
         else:
             if -7 <= self.local_ball_dir <= 7:
                 print "running"
@@ -82,7 +88,7 @@ class SuperMan(object):
                     self._old_ball_distance = self.local_ball_distance
 
                 P = 1.3
-                D = 2.0
+                D = 0.5
 
                 control = P * self.local_ball_distance + D * (self._old_ball_distance - self.local_ball_distance)
                 print "cdash=", [control, self.local_ball_distance, self._old_ball_distance - self.local_ball_distance]
@@ -90,3 +96,5 @@ class SuperMan(object):
             else:
                 self.wm.ah.turn(self.local_ball_dir / 2)
                 self.local_direction += self.local_ball_dir / 2
+
+        return False
