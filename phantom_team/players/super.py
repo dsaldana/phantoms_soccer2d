@@ -13,7 +13,10 @@ class SuperMan(object):
         self.new_sensed_msg = False
 
         self._old_ball_distance = None
+
+        # Estimated values based on actions
         self.local_ball_dir = None
+        self.local_ball_distance = None
 
     def update_super(self):
         self.new_sensed_msg = self.old_message != self.wm.last_message
@@ -64,23 +67,26 @@ class SuperMan(object):
     def dribbling_to(self, point):
         if self.new_sensed_msg or self.local_ball_dir is None:
             self.local_ball_dir = self.wm.ball.direction
+            self.local_ball_distance = self.wm.ball.distance
 
         if self.is_ball_kickable():
             angle = cut_angle(angle_between_points(self.wm.abs_coords, point)) - cut_angle(self.local_direction)
-            self.wm.ah.kick(20, angle)
+            self.wm.ah.kick(10, angle)
+            self.local_ball_distance += 3 / 4
+            self.local_ball_dir += angle
             return
         else:
             if -7 <= self.local_ball_dir <= 7:
                 print "running"
                 if self._old_ball_distance is None:
-                    self._old_ball_distance = self.wm.ball.distance
+                    self._old_ball_distance = self.local_ball_distance
 
-                P = 0.3
-                D = 3.0
+                P = 1.3
+                D = 2.0
 
-                control = P * self.wm.ball.distance + D * (self._old_ball_distance - self.wm.ball.distance)
-                print "control dash=", control, self.wm.ball.distance
+                control = P * self.local_ball_distance + D * (self._old_ball_distance - self.local_ball_distance)
+                print "cdash=", [control, self.local_ball_distance, self._old_ball_distance - self.local_ball_distance]
                 self.wm.ah.dash(control)
             else:
                 self.wm.ah.turn(self.local_ball_dir / 2)
-                self.local_ball_dir += self.wm.ball.direction / 2
+                self.local_direction += self.local_ball_dir / 2
