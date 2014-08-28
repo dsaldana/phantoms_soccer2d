@@ -7,28 +7,43 @@ class SuperMan(object):
         self.fly = True
 
         self.old_message = None
-        self.orientation = None
+        # Offline direction based on actions
+        self.local_direction = None
 
-    def dash_to_point(self, point):
-        if self.old_message != self.wm.last_message:
-            self.orientation = self.wm.abs_body_dir
+        self.new_sensed_msg = False
+
+        self._old_ball_distance = None
+        self.local_ball_dir = None
+
+    def update_super(self):
+        self.new_sensed_msg = self.old_message != self.wm.last_message
+
+        if self.new_sensed_msg or self.local_direction is None:
+            self.local_direction = self.wm.abs_body_dir
 
         self.old_message = self.wm.last_message
 
+
+    def dash_to_point(self, point, radio=10):
+        """
+        Run to a point.
+        :param point: target point
+        :param radio: tolerance to be in the point.
+        :return:
+        """
         # calculate absolute direction to point
         abs_point_dir = angle_between_points(self.wm.abs_coords, point)
 
         # subtract from absolute body direction to get relative angle
-        relative_angle = abs_point_dir - self.orientation
+        relative_angle = abs_point_dir - self.local_direction
         relative_angle = cut_angle(relative_angle)
-
 
         # if self.fly:
         P = 5
         D = 9
         distance = euclidean_distance(self.wm.abs_coords, point)
 
-        if abs(distance) < 10:
+        if abs(distance) < radio:
             return True
 
         if self.old_distance is None:
@@ -39,17 +54,33 @@ class SuperMan(object):
         if not -7 <= relative_angle <= 7:
             self.wm.ah.turn(relative_angle)
 
-            self.orientation += relative_angle
-            print "ang", relative_angle
+            self.local_direction += relative_angle
         else:
-            # print "run", relative_angle
-            print "control dash=", control, distance
             self.wm.ah.dash(control)
 
         self.old_distance = distance
 
 
+    def dribbling_to(self, point):
+        if self.new_sensed_msg or self.local_ball_dir is None:
+            self.local_ball_dir = self.wm.ball.direction
 
-        # else:
-        # self.turn_body_to_point(point)
-        #     self.fly = not self.fly
+        if self.is_ball_kickable():
+            angle = cut_angle(angle_between_points(self.wm.abs_coords, point)) - cut_angle(self.local_direction)
+            self.wm.ah.kick(20, angle)
+            return
+        else:
+            if -7 <= self.local_ball_dir <= 7:
+                print "running"
+                if self._old_ball_distance is None:
+                    self._old_ball_distance = self.wm.ball.distance
+
+                P = 0.3
+                D = 3.0
+
+                control = P * self.wm.ball.distance + D * (self._old_ball_distance - self.wm.ball.distance)
+                print "control dash=", control, self.wm.ball.distance
+                self.wm.ah.dash(control)
+            else:
+                self.wm.ah.turn(self.local_ball_dir / 2)
+                self.local_ball_dir += self.wm.ball.direction / 2

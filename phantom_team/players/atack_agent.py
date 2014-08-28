@@ -29,6 +29,8 @@ class AtackAgent(AbstractPlayer, SuperMan):
         Performs a single step of thinking for our agent.  Gets called on every
         iteration of our think loop.
         """
+        self.update_super()
+
         if self.visualization:
             if self.wm.abs_coords[0] is None:
                 return
@@ -79,37 +81,41 @@ class AtackAgent(AbstractPlayer, SuperMan):
 
         # attack!
         else:
+            # self.wm.ah.dash(50)
+            # return
             # If not new cicle
             # if self.current_time == self.wm.sim_time:
-            #     return
+            # return
 
             # self.current_time = self.wm.sim_time
             # print self.wm.sim_time
 
-            if self.wm.abs_coords is not None:
-
-                self.dash_to_point((50,25))
-                return
+            # if self.wm.abs_coords is not None:
+            #     self.dash_to_point((50,25))
+            #     return
 
             # find the ball
             if self.wm.ball is None or self.wm.ball.direction is None:
                 self.wm.ah.turn(35)
                 return
 
-            # kick it at the enemy goal
-            if self.is_ball_kickable():
+            self.dribbling_to((35, 15))
 
-                # angle = cut_angle(angle_between_points(self.wm.abs_coords, self.goal_pos)) - cut_angle(self.wm.abs_body_dir)
-                # self.wm.ah.kick(20, angle)
-                self.kick_to((0, 20))
-                return
-            else:
-                # move towards ball
-                if -7 <= self.wm.ball.direction <= 7:
-                    self.wm.ah.dash(5 * self.wm.ball.distance + 20)
-                else:
-                    # face ball
-                    self.wm.ah.turn(self.wm.ball.direction / 2)
 
-                return
+            # # kick it at the enemy goal
+            # if self.is_ball_kickable():
+            #
+            #     # angle = cut_angle(angle_between_points(self.wm.abs_coords, self.goal_pos)) - cut_angle(self.wm.abs_body_dir)
+            #     # self.wm.ah.kick(20, angle)
+            #     self.kick_to((0, 20))
+            #     return
+            # else:
+            #     # move towards ball
+            #     if -7 <= self.wm.ball.direction <= 7:
+            #         self.wm.ah.dash(5 * self.wm.ball.distance + 20)
+            #     else:
+            #         # face ball
+            #         self.wm.ah.turn(self.wm.ball.direction / 2)
+            #
+            #     return
 
