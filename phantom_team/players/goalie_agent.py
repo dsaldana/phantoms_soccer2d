@@ -5,15 +5,18 @@ from smsoccer.players.abstractgoalie import AbstractGoalie
 from smsoccer.util.fielddisplay import FieldDisplay
 from smsoccer.util.geometric import euclidean_distance
 
+from superman import SuperMan
+
 from shapely.geometry import *
 
-class GoalieAgent(AbstractGoalie):
+class GoalieAgent(AbstractGoalie, SuperMan):
     """
     Goalie Agent for Robocup Soccer Team
     """
 
     def __init__(self, visualization = False):
-        super(GoalieAgent, self).__init__()
+        AbstractGoalie.__init__(self)
+        SuperMan.__init__(self)
 
         self.visualization = visualization
         if visualization:
@@ -38,7 +41,12 @@ class GoalieAgent(AbstractGoalie):
 
             line_points = list( line.coords )
 
-            return { "circle_points": circle_points, "line_points": line_points }
+            # Destination Point
+
+            inter = circle.intersection( line )
+            point = list( inter.coords )[1]
+
+            return { "circle_points": circle_points, "line_points": line_points, "destination_point": point }
 
         return False
 
@@ -46,6 +54,10 @@ class GoalieAgent(AbstractGoalie):
         """
         Think method
         """
+
+        self.update_super()
+
+        rules = self.position_rules()
 
         # Draw Debug map
         if self.visualization:
@@ -57,7 +69,6 @@ class GoalieAgent(AbstractGoalie):
             if self.wm.ball is not None:
                 self.display.draw_circle(self.wm.get_object_absolute_coords(self.wm.ball), 4)
 
-            rules = self.position_rules()
             if rules != False:
                 self.display.draw_points( rules["circle_points"] );
                 self.display.draw_line( rules["line_points"][0], rules["line_points"][1] )
@@ -65,6 +76,12 @@ class GoalieAgent(AbstractGoalie):
             self.display.show()
 
         # END Draw Debug Map
+
+        # DEBUG
+
+        # print self.wm.abs_body_dir
+
+        # END DEBUG
 
         if not self.in_kick_off_formation:
 
@@ -74,4 +91,17 @@ class GoalieAgent(AbstractGoalie):
             self.teleport_to_point(self._my_goal_position)
             # Player is ready in formation
             self.in_kick_off_formation = True
-            return
+        else:
+            # Act
+            if self.wm.play_mode != PlayModes.BEFORE_KICK_OFF:
+
+                if rules == False:
+                    # self.turn_body_to_point( self._my_goal_position )
+                    # self.wm.ah.turn(10)
+
+                    if self.dash_to_point( self._my_goal_position, radio = 1 ) == True:
+                        # turn to field
+                        print "reach !"
+                    return
+
+                self.dash_to_point( rules["destination_point"], radio = 1 );
