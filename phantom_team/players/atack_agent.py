@@ -1,4 +1,6 @@
-from super import SuperMan
+from phantom_team.strategy.formation import positions
+from smsoccer.strategy import formation
+from superman import SuperMan
 from smsoccer.players.abstractplayer import AbstractPlayer
 from smsoccer.strategy.formation import player_position
 from smsoccer.world.world_model import WorldModel, PlayModes
@@ -32,6 +34,8 @@ class AtackAgent(AbstractPlayer, SuperMan):
         iteration of our think loop.
         """
         self.update_super()
+        self.wm.ah.say('"hello hello"')
+        print len(self.wm.team_message_queue)
 
         if self.visualization:
             if self.wm.abs_coords[0] is None:
@@ -46,9 +50,8 @@ class AtackAgent(AbstractPlayer, SuperMan):
 
         # take places on the field by uniform number
         if not self.in_kick_off_formation:
-            position_point = player_position(self.wm.uniform_number)
             # Teleport to right position
-            self.teleport_to_point(position_point)
+            self.teleport_to_point(positions[3])
 
             # turns to attack field
             if self.wm.side == WorldModel.SIDE_R:

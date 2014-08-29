@@ -1,5 +1,6 @@
-
+from phantom_team.strategy.formation import positions
 from smsoccer.players.abstractplayer import AbstractPlayer
+from smsoccer.strategy import formation
 from smsoccer.strategy.formation import player_position
 from smsoccer.world.world_model import WorldModel, PlayModes
 from smsoccer.util.fielddisplay import FieldDisplay
@@ -57,9 +58,7 @@ class DefenseAgent(AbstractPlayer):
 
         if not self.in_kick_off_formation:
 
-            position_point = player_position( self.wm.uniform_number, self.wm.side == WorldModel.SIDE_R )
-            # Teleport to right position
-            self.wm.teleport_to_point( position_point )
+            self.teleport_to_point(positions[2])
             # Player is ready in formation
             self.in_kick_off_formation = True
             return

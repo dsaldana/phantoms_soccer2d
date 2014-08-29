@@ -23,9 +23,8 @@ import time
 import sys
 from players.atack_agent import AtackAgent
 
-sys.path.append("../")
+# sys.path.append("../")
 
-from players.goalie_agent import GoalieAgent
 
 PORT = 6000
 

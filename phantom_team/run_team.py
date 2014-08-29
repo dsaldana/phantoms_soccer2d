@@ -21,12 +21,15 @@
 
 
 from time import sleep
+from phantom_team.players.defense_agent import DefenseAgent
+from phantom_team.players.goalie_agent import GoalieAgent
 from players.coach_agent import CoachAgent
 from players.atack_agent import AtackAgent
 
 
 PORT_PLAYERS = 6000
 PORT_COACH = 6002
+
 
 
 def spawn_coach(team_name):
@@ -46,13 +49,47 @@ def spawn_coach(team_name):
         print sys.exc_info()[0]
 
 
-def spawn_agent(team_name, goalie):
+def spawn_goalie(team_name):
     """
     Used to run an agent in a separate physical process.
     """
     try:
 
-        a = AtackAgent() if goalie else AtackAgent()
+        a = GoalieAgent()
+        a.connect("localhost", PORT_PLAYERS, team_name)
+        a.play()
+
+        # we wait until we're killed
+        while 1:
+            # we sleep for a good while since we can only exit if terminated.
+            sleep(1)
+    except:
+        print sys.exc_info()[0]
+
+
+def spawn_defense(team_name):
+    """
+    Used to run an agent in a separate physical process.
+    """
+    try:
+
+        a = DefenseAgent()
+        a.connect("localhost", PORT_PLAYERS, team_name)
+        a.play()
+
+        # we wait until we're killed
+        while 1:
+            # we sleep for a good while since we can only exit if terminated.
+            sleep(1)
+    except:
+        print sys.exc_info()[0]
+
+def spawn_agent(team_name):
+    """
+    Used to run an agent in a separate physical process.
+    """
+    try:
+        a = AtackAgent()
         a.connect("localhost", PORT_PLAYERS, team_name)
         a.play()
 
@@ -81,26 +118,30 @@ if __name__ == "__main__":
 
     # Goalie
     print "  Spawning goalie"
-    ag = mp.Process(target=spawn_agent, args=(sys.argv[1], True))
+    ag = mp.Process(target=spawn_goalie, args=(sys.argv[1],))
     ag.daemon = True
     ag.start()
     agent_threads.append(ag)
     sleep(0.1)
 
-    # # Spawn players
-    for agent in xrange(min(10, int(sys.argv[2]) - 1)):
-        print "  Spawning agent %d..." % agent
-        at = mp.Process(target=spawn_agent, args=(sys.argv[1], False))
-        at.daemon = True
-        at.start()
-        agent_threads.append(at)
+    ag = mp.Process(target=spawn_defense, args=(sys.argv[1],))
+    ag.daemon = True
+    ag.start()
+    agent_threads.append(ag)
+    sleep(0.1)
+
+    ag = mp.Process(target=spawn_agent, args=(sys.argv[1],))
+    ag.daemon = True
+    ag.start()
+    agent_threads.append(ag)
+    sleep(0.1)
 
     # Coach
-    print "  Spawning coach"
-    ac = mp.Process(target=spawn_coach, args=(sys.argv[1],))
-    ac.daemon = True
-    ac.start()
-    agent_threads.append(ac)
+    # print "  Spawning coach"
+    # ac = mp.Process(target=spawn_coach, args=(sys.argv[1],))
+    # ac.daemon = True
+    # ac.start()
+    # agent_threads.append(ac)
 
     print "RUN SUPER MARIO!!"
 
