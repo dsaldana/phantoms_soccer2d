@@ -21,9 +21,9 @@
 
 import time
 import sys
-from players.atack_agent import AtackAgent
 
-# sys.path.append("../")
+sys.path.append("../../super_mario_soccer_base")
+from players.doidao_teleop import DoidaoTeleop
 
 
 PORT = 6000
@@ -41,9 +41,9 @@ if __name__ == "__main__":
         #Get team name from arguments
         team_name = sys.argv[1]
     else:
-        team_name = "default"
+        team_name = "gato"
 
-    AtackAgent().connect(HOST, PORT, team_name).play()
+    DoidaoTeleop().connect(HOST, PORT, team_name).play()
 
     # wait until killed to terminate agent processes
     try:
